@@ -3,38 +3,51 @@ const mongoose = require("mongoose");
 const usuariSchema = new mongoose.Schema({
   idUsuari: {
     type: Number,
-    required: true,
     unique: true,
+    sparse: true,
   },
   nom: {
     type: String,
-    required: true,
+    required: [true, "El nom es obligatori"],
     minlength: 2,
     maxlength: 50,
+    trim: true,
   },
   email: {
     type: String,
-    required: true,
+    required: [true, "El correu es obligatori"],
     unique: true,
+    lowercase: true,
+    trim: true,
     match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    validate: {
-      validator: function (valor) {
-        return valor.endsWith(".com") || valor.endsWith(".es");
-      },
-      message: "El email ha de acabar en .com o .es",
-    },
   },
-  contrasenya: {
+  passwordHash: {
     type: String,
     required: true,
-    minlength: 6,
+    select: false,
+  },
+  role: {
+    type: String,
+    enum: ["client", "admin"],
+    default: "client",
+  },
+  active: {
+    type: Boolean,
+    default: true,
   },
   adreca: {
     type: String,
-    required: true,
+    default: "",
+    maxlength: 200,
+  },
+}, { timestamps: true });
+
+usuariSchema.set("toJSON", {
+  transform: function (doc, ret) {
+    delete ret.passwordHash;
+    delete ret.__v;
+    return ret;
   },
 });
-
-usuariSchema.index({ email: 1 });
 
 module.exports = mongoose.model("Usuari", usuariSchema);
